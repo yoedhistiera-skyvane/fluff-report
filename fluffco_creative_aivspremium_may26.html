@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FluffCo Creative Source Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,900&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F2EEE3; --paper-2:#EAE5D6; --ink:#1B1A16; --ink-soft:#46443B;
+    --muted:#8C8676; --line:#D6CFBD;
+    --ai:#2F5D62; --ai-soft:#cfe0df; --prem:#B8552E; --prem-soft:#ecd4c4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--paper);color:var(--ink);font-family:'Newsreader',Georgia,serif;font-size:18px;line-height:1.55;-webkit-font-smoothing:antialiased;background-image:radial-gradient(var(--line) 0.5px,transparent 0.5px);background-size:22px 22px}
+  .wrap{max-width:1000px;margin:0 auto;padding:52px 28px 90px}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  .ai-c{color:var(--ai);font-weight:600}.prem-c{color:var(--prem);font-weight:600}
+
+  header{border-bottom:2px solid var(--ink);padding-bottom:22px}
+  .kicker{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.22em;text-transform:uppercase;color:var(--prem);font-weight:600}
+  h1{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(34px,6vw,56px);line-height:0.98;letter-spacing:-0.02em;margin:12px 0 10px}
+  .sub{font-size:19px;color:var(--ink-soft);max-width:64ch}
+  .metarow{display:flex;flex-wrap:wrap;margin-top:24px;border:1px solid var(--line);background:rgba(255,255,255,0.35)}
+  .metarow .m{flex:1 1 0;min-width:120px;padding:13px 16px;border-right:1px solid var(--line)}
+  .metarow .m:last-child{border-right:none}
+  .metarow .lab{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--muted)}
+  .metarow .val{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;margin-top:3px}
+
+  section{margin-top:60px}
+  .tag{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.14em;color:var(--prem);font-weight:600;text-transform:uppercase}
+  h2{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(25px,4vw,34px);line-height:1.05;letter-spacing:-0.015em;margin:6px 0 18px}
+  p{margin-bottom:14px;color:var(--ink-soft)}
+  p strong{color:var(--ink);font-weight:600}
+  .note{font-size:13.5px;color:var(--muted);font-style:italic;margin-top:10px}
+
+  .board{background:var(--ink);color:var(--paper);padding:38px 36px 30px;position:relative;overflow:hidden}
+  .board::after{content:"≈";position:absolute;right:20px;bottom:-90px;font-family:'Fraunces',serif;font-weight:900;font-size:240px;color:rgba(242,238,227,0.05);line-height:1}
+  .board .tag{color:var(--prem-soft)}
+  .board .lead{font-family:'Fraunces',serif;font-size:clamp(22px,3.3vw,31px);font-weight:500;line-height:1.22;color:var(--paper);margin:8px 0 6px;position:relative;z-index:2;max-width:30ch}
+  .board .lead b{color:#F0C9A0;font-weight:600;border-bottom:2px solid var(--prem)}
+  .board .gloss{color:#C9C4B5;position:relative;z-index:2;max-width:60ch;font-size:16px}
+  .sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.14);margin-top:26px;position:relative;z-index:2}
+  .sgrid .cell{background:var(--ink);padding:15px 16px}
+  .sgrid .cl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#A39D8D}
+  .sgrid .cv{font-family:'IBM Plex Mono',monospace;font-size:15px;margin-top:6px;display:flex;justify-content:space-between;align-items:baseline}
+  .sgrid .cv .a{color:#8FC4C9;font-weight:600;font-size:19px}
+  .sgrid .cv .p{color:#E89B6F;font-weight:600;font-size:19px}
+  .legend{display:flex;gap:20px;margin-top:18px;position:relative;z-index:2;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#C9C4B5;flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:7px}
+  .legend i{width:11px;height:11px;border-radius:2px;display:inline-block}
+  .legend i.a{background:#8FC4C9}.legend i.p{background:#E89B6F}
+
+  .invhead{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
+  .invcard{border:1px solid var(--line);background:rgba(255,255,255,0.42);padding:22px 24px}
+  .invcard.ai{border-top:4px solid var(--ai)}.invcard.prem{border-top:4px solid var(--prem)}
+  .invcard .who{font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;font-weight:600}
+  .invcard.ai .who{color:var(--ai)}.invcard.prem .who{color:var(--prem)}
+  .invcard .tier{font-size:13px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:1px}
+  .invcard .big{font-family:'IBM Plex Mono',monospace;font-size:54px;font-weight:600;letter-spacing:-0.03em;line-height:1;margin:14px 0 2px}
+  .invcard .biglab{font-size:14px;color:var(--ink-soft)}
+  .invcard .distinct{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:8px}
+
+  .funnel3{border:1px solid var(--line);background:rgba(255,255,255,0.42);padding:8px 0}
+  .f3row{display:grid;grid-template-columns:160px 1fr 1fr;align-items:center;padding:13px 22px;border-bottom:1px solid var(--line)}
+  .f3row:last-child{border-bottom:none}
+  .f3row.hdr div{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}
+  .f3row .stage{font-family:'Newsreader',serif;font-size:15.5px;color:var(--ink)}
+  .f3row .stage small{display:block;font-size:12px;color:var(--muted)}
+  .barwrap{display:flex;align-items:center;gap:10px;padding-right:18px}
+  .barwrap .tk{flex:1;height:22px;background:var(--paper-2);border:1px solid var(--line);position:relative}
+  .barwrap .fl{height:100%}
+  .barwrap .fl.ai{background:var(--ai)}.barwrap .fl.prem{background:var(--prem)}
+  .barwrap .n{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;min-width:34px;text-align:right}
+  .barwrap .n.ai{color:var(--ai)}.barwrap .n.prem{color:var(--prem)}
+
+  .cmp{border:1px solid var(--ink);margin-top:8px;background:rgba(255,255,255,0.42)}
+  .cmp .crow{display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;border-bottom:1px solid var(--line)}
+  .cmp .crow:last-child{border-bottom:none}
+  .cmp .crow.head{background:var(--ink)}
+  .cmp .crow.head>div{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--paper)}
+  .cmp>.crow>div{padding:12px 16px;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+  .cmp .metric{font-family:'Newsreader',serif !important;font-size:15px;color:var(--ink);font-weight:500;display:flex;flex-direction:column}
+  .cmp .metric small{font-family:'Newsreader',serif;font-size:12px;color:var(--muted);font-weight:400;margin-top:1px}
+  .cmp .va{color:var(--ai);font-weight:600;font-size:18px}
+  .cmp .vp{color:var(--prem);font-weight:600;font-size:18px}
+  .cmp .va small,.cmp .vp small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:2px;letter-spacing:0}
+  .cmp .edge{font-family:'Newsreader',serif !important;font-size:13.5px;color:var(--ink-soft);font-weight:500;align-self:center}
+  .cmp .edge b{font-weight:600}
+  .winA{color:var(--ai)}.winP{color:var(--prem)}.tie{color:var(--muted)}
+
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:15px}
+  th{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:2px solid var(--ink)}
+  th.r,td.r{text-align:right}
+  td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+  td.name{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink);max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  td .dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:8px;vertical-align:middle}
+  .dot.ai{background:var(--ai)}.dot.prem{background:var(--prem)}
+  .tnum{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-weight:500}
+  tr.hl td{background:rgba(184,85,46,0.07)}
+
+  .trend{border:1px solid var(--line);background:rgba(255,255,255,0.42);padding:26px 26px 16px}
+  .chart{display:flex;align-items:flex-end;gap:6px;height:200px;position:relative;border-bottom:2px solid var(--ink)}
+  .brkline{position:absolute;left:0;right:0;border-top:1px dashed var(--muted);z-index:1}
+  .brkline span{position:absolute;right:0;top:-9px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);background:var(--paper);padding:0 4px}
+  .tband{position:absolute;left:0;right:0;background:rgba(27,26,22,0.07);border-top:2px solid var(--ink);border-bottom:1px dashed var(--ink-soft);z-index:1}
+  .tband .tt{position:absolute;right:0;top:-15px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--ink);background:var(--paper);padding:0 5px}
+  .tband .tf{position:absolute;left:0;bottom:-14px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);background:var(--paper);padding:0 5px}
+  .chartlegend{display:flex;gap:20px;margin-bottom:18px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);flex-wrap:wrap;align-items:center}
+  .chartlegend span{display:flex;align-items:center;gap:8px}
+  .chartlegend i{width:13px;height:13px;border-radius:2px;display:inline-block}
+  .chartlegend i.ai{background:var(--ai)}.chartlegend i.prem{background:var(--prem)}
+  .chartlegend i.tgt{width:18px;height:0;border-top:2px solid var(--ink);border-radius:0}
+  .wk{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .pair{display:flex;align-items:flex-end;gap:4px;height:100%;width:100%;justify-content:center}
+  .col{width:30%;max-width:34px;position:relative}
+  .col.ai{background:var(--ai)}.col.prem{background:var(--prem)}
+  .col .cval{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;white-space:nowrap}
+  .col.ai .cval{color:var(--ai)}.col.prem .cval{color:var(--prem)}
+  .wklab{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin-top:8px;text-align:center;line-height:1.25}
+  .wklab b{color:var(--ink)}
+
+  .rec{border:1px solid var(--line);background:rgba(255,255,255,0.42);padding:20px 24px;margin-bottom:14px;display:grid;grid-template-columns:42px 1fr;gap:18px;align-items:start}
+  .rec .rn{font-family:'Fraunces',serif;font-size:34px;font-weight:900;color:var(--prem);line-height:0.9}
+  .rec h4{font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin-bottom:6px;color:var(--ink)}
+  .rec p{margin-bottom:0;font-size:15.5px}
+  .rec .chip{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--line);color:var(--ink-soft);margin-top:10px;background:var(--paper)}
+
+  .callout{border-left:3px solid var(--prem);background:rgba(184,85,46,0.06);padding:16px 20px;margin-top:18px;font-size:16px}
+  .callout b{color:var(--ink)}
+
+  .akey{border:1px dashed var(--muted);padding:18px 22px;background:rgba(255,255,255,0.3)}
+  .akey .arow{display:grid;grid-template-columns:1fr auto;gap:14px;padding:8px 0;border-bottom:1px dotted var(--line);font-size:14.5px}
+  .akey .arow:last-child{border-bottom:none}
+  .akey .q{color:var(--ink-soft)}.akey .q b{color:var(--ink)}
+  .akey .a{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--prem);white-space:nowrap}
+
+  footer{margin-top:64px;border-top:1px solid var(--line);padding-top:20px}
+  footer h5{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  footer li{font-size:13.5px;color:var(--ink-soft);list-style:none;padding-left:18px;position:relative;margin-bottom:7px;max-width:84ch}
+  footer li::before{content:"›";position:absolute;left:0;color:var(--prem);font-weight:600}
+
+  @media(max-width:720px){
+    .sgrid{grid-template-columns:1fr 1fr}
+    .invhead{grid-template-columns:1fr}
+    .f3row{grid-template-columns:120px 1fr 1fr}
+    .cmp .crow{grid-template-columns:1.4fr 1fr 1fr}
+    .cmp .crow .edge,.cmp .crow.head>div:last-child{display:none}
+    .board{padding:30px 22px}
+    body{font-size:16.5px}
+    .rec{grid-template-columns:1fr;gap:6px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">Skyvane · FluffCo · Creative Source Audit</div>
+    <h1>AI vs Premium Statics</h1>
+    <p class="sub">Comparing the two creative sources running the FluffCo account: BlitzAds (AI statics, $1 per creative) and NER (Premium statics, $2 per creative). It lays out spend, efficiency, and how each source's creatives scale, side by side, so the cost difference can be weighed against the performance.</p>
+    <div class="metarow">
+      <div class="m"><div class="lab">Window</div><div class="val" style="font-size:15px">May 3 to Jun 1 2026</div></div>
+      <div class="m"><div class="lab">Account spend</div><div class="val">$102.9k</div></div>
+      <div class="m"><div class="lab">Creatives run</div><div class="val">382</div></div>
+      <div class="m"><div class="lab">Revenue (Meta)</div><div class="val">$199k</div></div>
+      <div class="m"><div class="lab">Attribution</div><div class="val" style="font-size:15px">Meta pixel</div></div>
+    </div>
+  </header>
+
+  <section style="margin-top:30px">
+    <div class="board">
+      <div class="tag">The headline</div>
+      <div class="lead">AI and Premium land in <b>the same place</b>.</div>
+      <p class="gloss">On headline ROAS the two are within a few points (1.99 vs 1.90), and once each source's single biggest ad is set aside they match exactly at 1.88. They reach comparable efficiency by different routes. The two cost differently to produce ($1 vs $2 per creative); the performance does not differ much. Whether that cost gap is worth it is the team's call, with the numbers below to weigh it.</p>
+      <div class="sgrid">
+        <div class="cell"><div class="cl">Spend</div><div class="cv"><span class="a">$51.0k</span><span class="p">$49.7k</span></div></div>
+        <div class="cell"><div class="cl">ROAS</div><div class="cv"><span class="a">1.99</span><span class="p">1.90</span></div></div>
+        <div class="cell"><div class="cl">ROAS, top ad removed</div><div class="cv"><span class="a">1.88</span><span class="p">1.88</span></div></div>
+        <div class="cell"><div class="cl">Cost per purchase</div><div class="cv"><span class="a">$74.8</span><span class="p">$80.2</span></div></div>
+        <div class="cell"><div class="cl">Creatives run</div><div class="cv"><span class="a">158</span><span class="p">224</span></div></div>
+        <div class="cell"><div class="cl">Scaled to $500+</div><div class="cv"><span class="a">11</span><span class="p">7</span></div></div>
+        <div class="cell"><div class="cl">Purchases</div><div class="cv"><span class="a">682</span><span class="p">620</span></div></div>
+        <div class="cell"><div class="cl">Avg order value</div><div class="cv"><span class="a">$149</span><span class="p">$152</span></div></div>
+      </div>
+      <div class="legend"><span><i class="a"></i> BlitzAds · AI statics ($1)</span><span><i class="p"></i> NER · Premium statics ($2)</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="tag">Creative inventory</div>
+    <h2>How many assets, and how far they got</h2>
+    <p>This is the part that was hard to see before. Each source ran a different number of creatives, and the two filter down very differently from "made" to "scaled." Spend is split nearly evenly ($51.0k vs $49.7k), so volume is the real difference, not budget.</p>
+    <div class="invhead">
+      <div class="invcard ai">
+        <div class="who">BlitzAds · AI</div><div class="tier">$1 per creative</div>
+        <div class="big">158</div><div class="biglab">creatives run in the window</div>
+        <div class="distinct">~156 distinct assets (2 are duplicated "Copy" ads)</div>
+      </div>
+      <div class="invcard prem">
+        <div class="who">NER · Premium</div><div class="tier">$2 per creative</div>
+        <div class="big">224</div><div class="biglab">creatives run in the window</div>
+        <div class="distinct">~221 distinct assets (3 are duplicated "Copy" ads)</div>
+      </div>
+    </div>
+    <div class="funnel3">
+      <div class="f3row hdr"><div>Stage</div><div>BlitzAds · AI</div><div>NER · Premium</div></div>
+      <div class="f3row">
+        <div class="stage">Ran at all<small>got any spend</small></div>
+        <div class="barwrap"><div class="tk"><div class="fl ai" style="width:100%"></div></div><div class="n ai">158</div></div>
+        <div class="barwrap"><div class="tk"><div class="fl prem" style="width:100%"></div></div><div class="n prem">224</div></div>
+      </div>
+      <div class="f3row">
+        <div class="stage">Got a real test<small>reached $100 spend</small></div>
+        <div class="barwrap"><div class="tk"><div class="fl ai" style="width:10.8%"></div></div><div class="n ai">17</div></div>
+        <div class="barwrap"><div class="tk"><div class="fl prem" style="width:11.6%"></div></div><div class="n prem">26</div></div>
+      </div>
+      <div class="f3row">
+        <div class="stage">Scaled heavily<small>reached $500 spend</small></div>
+        <div class="barwrap"><div class="tk"><div class="fl ai" style="width:7%"></div></div><div class="n ai">11</div></div>
+        <div class="barwrap"><div class="tk"><div class="fl prem" style="width:3.1%"></div></div><div class="n prem">7</div></div>
+      </div>
+    </div>
+    <p class="note">Bars show each source's count as a share of its own creatives run, so the steep drop is visible. Most assets never get going: 131 of 158 BlitzAds and 145 of 224 NER creatives never cleared even $10 before being cut. That is normal in paid social, the job is finding the few that break out.</p>
+    <div class="callout"><b>The signal here:</b> the two get to a similar overall efficiency by different routes. Premium tests across more creatives (26 reaching $100 vs 17) while AI concentrates spend into fewer, harder-scaling ones. Of the creatives that earned a real test, <span class="ai-c">about 2 in 3 of BlitzAds went on to scale</span> versus <span class="prem-c">about 1 in 4 for NER</span>, so Premium's pattern is broader testing with a more selective scale step. Worth knowing if the team wants to tune how quickly creatives are judged.</div>
+  </section>
+
+  <section>
+    <div class="tag">Cost vs performance</div>
+    <h2>The two tiers, line by line</h2>
+    <p>The "$1 vs $2" is a production-cost difference: AI cost about $158 to produce 158 creatives, Premium about $448 for 224, a $290 gap that is small against $100k of media. So the comparison that matters is performance per media dollar, shown below with the math in each cell. Each tier leads on some metrics and trails on others.</p>
+    <div class="cmp">
+      <div class="crow head"><div>Metric</div><div>AI · BlitzAds</div><div>Premium · NER</div><div>Difference</div></div>
+      <div class="crow"><div class="metric">ROAS<small>revenue ÷ ad spend</small></div><div class="va">1.99<small>$101.8k ÷ $51.0k</small></div><div class="vp">1.90<small>$94.5k ÷ $49.7k</small></div><div class="edge"><b class="winA">AI</b> +5%</div></div>
+      <div class="crow"><div class="metric">ROAS, biggest ad removed<small>minus each source's #1 spender</small></div><div class="va">1.88<small>ex 51A ($23.6k)</small></div><div class="vp">1.88<small>ex 20A ($19.0k)</small></div><div class="edge"><b class="tie">Tie</b></div></div>
+      <div class="crow"><div class="metric">Cost per purchase<small>ad spend ÷ purchases</small></div><div class="va">$74.82<small>$51.0k ÷ 682</small></div><div class="vp">$80.16<small>$49.7k ÷ 620</small></div><div class="edge"><b class="winA">AI</b> $5 cheaper</div></div>
+      <div class="crow"><div class="metric">Avg order value<small>revenue ÷ purchases</small></div><div class="va">$149.25<small>$101.8k ÷ 682</small></div><div class="vp">$152.46<small>$94.5k ÷ 620</small></div><div class="edge"><b class="tie">Tie</b></div></div>
+      <div class="crow"><div class="metric">% of creatives that scaled to $500+<small>scalers ÷ all creatives in the source</small></div><div class="va">7.0%<small>11 of 158</small></div><div class="vp">3.1%<small>7 of 224</small></div><div class="edge"><b class="winA">AI</b> 2.3x higher</div></div>
+      <div class="crow"><div class="metric">Cart to purchase rate<small>purchases ÷ add-to-carts</small></div><div class="va">17.9%<small>682 ÷ 3,810</small></div><div class="vp">18.4%<small>620 ÷ 3,378</small></div><div class="edge"><b class="winP">Prem</b> +0.5pt</div></div>
+      <div class="crow"><div class="metric">Avg spend per creative<small>source spend ÷ creatives run</small></div><div class="va">$323<small>$51.0k ÷ 158</small></div><div class="vp">$222<small>$49.7k ÷ 224</small></div><div class="edge"><b class="winA">AI</b> fed more each</div></div>
+    </div>
+    <p class="note">Read down each column. Green is BlitzAds (AI), rust is NER (Premium).</p>
+    <div class="callout"><b>Weighing the cost difference:</b> on the efficiency that media buys, ROAS and cost per purchase, the two tiers land close together, with AI a few points ahead on ROAS and Premium holding the single most efficient ad and a slight mid-funnel edge. Because the production-cost gap is small relative to media spend, the choice comes down to factors beyond this dataset: creative longevity, how reliably each pipeline produces fresh winners, brand fit, and Shopify-reconciled customer quality. Both are viable. The numbers here size the trade-off rather than settle it.</div>
+  </section>
+
+  <section>
+    <div class="tag">Best performers</div>
+    <h2>The account leans on a tiny handful</h2>
+    <p>By raw spend, BlitzAds owns the top (11 of the top 20 spenders). By ROAS above $300 spend, it is a dead heat (10/10), and NER holds the single most efficient ad. The bigger story is concentration: the top 3 creatives carry <strong>78% of BlitzAds spend and 73% of NER spend</strong>. The account is not broadly healthy, it is propped up by 4 to 6 ads on both sides.</p>
+    <table>
+      <thead><tr><th>Biggest spenders</th><th>Source</th><th class="r">Spend</th><th class="r">ROAS</th><th class="r">Purch.</th></tr></thead>
+      <tbody>
+        <tr class="hl"><td class="name">FLU_DECW1_51A_var_001 (Deyalla)</td><td><span class="dot ai"></span>AI</td><td class="r tnum">$23,643</td><td class="r tnum">2.13</td><td class="r tnum">336</td></tr>
+        <tr><td class="name">FLU_MARW2_20A</td><td><span class="dot prem"></span>Prem</td><td class="r tnum">$19,044</td><td class="r tnum">1.94</td><td class="r tnum">245</td></tr>
+        <tr><td class="name">Fluff FW4 - 106</td><td><span class="dot ai"></span>AI</td><td class="r tnum">$12,545</td><td class="r tnum">1.63</td><td class="r tnum">138</td></tr>
+        <tr><td class="name">NER_FLU_APRW3_18C</td><td><span class="dot prem"></span>Prem</td><td class="r tnum">$9,360</td><td class="r tnum">2.03</td><td class="r tnum">132</td></tr>
+        <tr><td class="name">NER_FLU_APRW5_35A</td><td><span class="dot prem"></span>Prem</td><td class="r tnum">$7,861</td><td class="r tnum">2.04</td><td class="r tnum">97</td></tr>
+        <tr><td class="name">Fluff MAR W1 Batch 04 - 74</td><td><span class="dot ai"></span>AI</td><td class="r tnum">$3,736</td><td class="r tnum">2.14</td><td class="r tnum">55</td></tr>
+      </tbody>
+    </table>
+    <table style="margin-top:24px">
+      <thead><tr><th>Most efficient (min $300 spend)</th><th>Source</th><th class="r">ROAS</th><th class="r">Spend</th></tr></thead>
+      <tbody>
+        <tr class="hl"><td class="name">FLU_MARW2_1C</td><td><span class="dot prem"></span>Prem</td><td class="r tnum">3.65</td><td class="r tnum">$489</td></tr>
+        <tr><td class="name">Fluff FW4 - 500</td><td><span class="dot ai"></span>AI</td><td class="r tnum">3.50</td><td class="r tnum">$1,599</td></tr>
+        <tr><td class="name">Fluff FW4 - 7</td><td><span class="dot ai"></span>AI</td><td class="r tnum">2.81</td><td class="r tnum">$756</td></tr>
+        <tr><td class="name">FLU_DECW1_29B</td><td><span class="dot prem"></span>Prem</td><td class="r tnum">2.68</td><td class="r tnum">$630</td></tr>
+        <tr><td class="name">FLU_MARW2_32A</td><td><span class="dot prem"></span>Prem</td><td class="r tnum">2.29</td><td class="r tnum">$2,451</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="tag">Momentum</div>
+    <h2>Neither source is pulling away</h2>
+    <p>A 30-day average can hide a trend, so here is weekly ROAS against the target. The goal line is 1.9, and anything down to 1.8 is still an acceptable range. There is no durable divergence: both sources sit in or just above that band most weeks, trading the lead. That reinforces the verdict, the parity is not a one-week fluke.</p>
+    <div class="trend">
+      <div class="chartlegend">
+        <span><i class="ai"></i> BlitzAds · AI ($1)</span>
+        <span><i class="prem"></i> NER · Premium ($2)</span>
+        <span><i class="tgt"></i> Target 1.9 (1.8 acceptable floor)</span>
+      </div>
+      <div class="chart">
+        <div class="tband" style="bottom:72%;height:4%"><span class="tt">Target 1.9</span><span class="tf">1.8 floor</span></div>
+        <div class="wk">
+          <div class="pair"><div class="col ai" style="height:76.8%"><span class="cval">1.92</span></div><div class="col prem" style="height:83.6%"><span class="cval">2.09</span></div></div>
+          <div class="wklab"><b>Wk 1</b><br>May 3-9</div>
+        </div>
+        <div class="wk">
+          <div class="pair"><div class="col ai" style="height:86.8%"><span class="cval">2.17</span></div><div class="col prem" style="height:68%"><span class="cval">1.70</span></div></div>
+          <div class="wklab"><b>Wk 2</b><br>May 10-16</div>
+        </div>
+        <div class="wk">
+          <div class="pair"><div class="col ai" style="height:75.2%"><span class="cval">1.88</span></div><div class="col prem" style="height:70.8%"><span class="cval">1.77</span></div></div>
+          <div class="wklab"><b>Wk 3</b><br>May 17-23</div>
+        </div>
+        <div class="wk">
+          <div class="pair"><div class="col ai" style="height:84.8%"><span class="cval">2.12</span></div><div class="col prem" style="height:77.6%"><span class="cval">1.94</span></div></div>
+          <div class="wklab"><b>Wk 4</b><br>May 24-30</div>
+        </div>
+        <div class="wk">
+          <div class="pair"><div class="col ai" style="height:72.4%"><span class="cval">1.81</span></div><div class="col prem" style="height:88%"><span class="cval">2.20</span></div></div>
+          <div class="wklab"><b>Wk 5</b><br>May 31-Jun 1</div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px">Columns are weekly ROAS, scaled so the top of the chart is 2.5. The shaded stripe is the target zone (1.8 to 1.9). Both sources tracked in or near the band through the window; NER slipped just under the 1.8 floor in weeks 2 and 3 (1.70 and 1.77) and recovered. Week 5 is only 2 days, so treat it as noise. Weekly spend stayed in the $7k to $13k range per source throughout.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="tag">Recap</div>
+    <h2>Questions answered</h2>
+    <div class="akey">
+      <div class="arow"><div class="q"><b>1. How much did we spend?</b> BlitzAds $51,029, NER $49,701 (Other $2,226 excluded).</div><div class="a">Scoreboard · Inventory</div></div>
+      <div class="arow"><div class="q"><b>2. Are our creatives among the best?</b> Yes, both sources sit among the top performers; ROAS is even and the account leans on a handful of winners on each side.</div><div class="a">Best performers</div></div>
+      <div class="arow"><div class="q"><b>3. AI ($1) vs Premium ($2), worth the extra cost?</b> Performance is comparable: matching ROAS, cost per purchase $75 vs $80, each tier leading on different metrics. The tiers cost differently to produce, so whether the premium is worthwhile is a team call. The numbers size it.</div><div class="a">Cost table</div></div>
+      <div class="arow"><div class="q"><b>4. How many scaled heavily ($500+)?</b> BlitzAds 11, NER 7.</div><div class="a">Inventory funnel</div></div>
+      <div class="arow"><div class="q"><b>5. How many reached $100+?</b> BlitzAds 17, NER 26.</div><div class="a">Inventory funnel</div></div>
+    </div>
+  </section>
+
+  <footer>
+    <h5>Method &amp; caveats</h5>
+    <ul>
+      <li>Categorization: "Blitzads" in the ad name maps to AI (BlitzAds). "NER_" or "FLU_" maps to Premium (NER). BlitzAds takes priority where a name contains both. Everything else is Other and excluded ($2,226 across 9 ads).</li>
+      <li>"382 creatives" is 158 BlitzAds plus 224 NER unique ad names, with no overlap between sources. A creative that ran in several ad sets (14 of them) is counted once, with its spend summed, so it is not inflated.</li>
+      <li>Duplication: 7 ads carry a "Copy" suffix and 4 of those have the original running alongside, so distinct assets are about 156 BlitzAds and 221 NER. The copies kept their own spend (it was really spent), so no performance metric changes.</li>
+      <li>Spend window is the 30 days from May 3 to Jun 1 2026. Dates inside ad names are creation dates, so several top spenders are older creatives still running.</li>
+      <li>ROAS, cost per purchase and AOV use Meta "Purchases conversion value" (pixel-attributed), not Shopify-reconciled revenue. Treat as directional.</li>
+      <li>"Worth the $" is judged on performance, not production cost, because the $1 vs $2 production delta (about $290) is immaterial against roughly $100k of media spend.</li>
+    </ul>
+  </footer>
+
+</div>
+</body>
+</html>
