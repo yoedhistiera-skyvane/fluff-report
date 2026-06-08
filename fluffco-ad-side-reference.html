@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FluffCo Paid Social Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* fluff.co brand tokens (pulled from live site) */
+    --cream:#F6EDE4;
+    --cream-dark:#EFE4DA;
+    --card:#FCFAF5;
+    --ink:#121212;
+    --ink-soft:#5B564E;
+    --indigo:#434780;
+    --indigo-soft:#6E72A8;
+    --pink:#FF808F;
+    --yellow:#F2CE12;
+    --line:rgba(67,71,128,.16);
+    --line-soft:rgba(18,18,18,.09);
+    --display:'Fraunces',Georgia,serif;       /* stand-in for Recoleta */
+    --body:'Hanken Grotesk',-apple-system,sans-serif; /* stand-in for PP Pangram Sans */
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--cream);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:0 34px}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* cover */
+  .cover{padding:78px 0 46px;border-bottom:1.5px solid var(--indigo)}
+  .badge{display:inline-flex;align-items:center;gap:9px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--indigo);font-weight:600}
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--pink)}
+  .cover h1{font-family:var(--display);font-weight:600;font-size:clamp(38px,6vw,55px);line-height:1.04;letter-spacing:-.01em;margin:20px 0 20px;max-width:17ch}
+  .cover h1 em{font-style:italic;color:var(--indigo)}
+  .cover .sub{font-size:18px;color:var(--ink-soft);max-width:60ch}
+  .cover-meta{display:flex;flex-wrap:wrap;gap:32px;margin-top:34px}
+  .cover-meta .item .lbl{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:4px;font-weight:600}
+  .cover-meta .item .val{font-size:15px;font-weight:600}
+
+  section{padding:50px 0;border-bottom:1px solid var(--line-soft)}
+  .eyebrow{display:flex;align-items:center;gap:13px;margin-bottom:7px}
+  .eyebrow .n{font-family:var(--display);font-size:15px;color:var(--pink);font-weight:600;font-style:italic}
+  .eyebrow .k{font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--indigo);font-weight:700}
+  h2{font-family:var(--display);font-weight:600;font-size:clamp(27px,3.6vw,35px);line-height:1.1;letter-spacing:-.01em;margin-bottom:18px}
+  h3{font-family:var(--display);font-weight:600;font-size:20px;margin-bottom:5px}
+  p{margin-bottom:15px;max-width:70ch}
+  p.lead{font-size:18px;max-width:64ch}
+  strong{font-weight:700}
+  .soft{color:var(--ink-soft)}
+  .ind{color:var(--indigo);font-weight:600}
+
+  /* stat band */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:26px 0}
+  .stat{background:var(--card);padding:22px 20px}
+  .stat .s-lbl{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin-bottom:10px}
+  .stat .s-val{font-family:var(--display);font-size:33px;font-weight:600;line-height:1;color:var(--indigo)}
+  .stat .s-sub{font-size:12.5px;color:var(--ink-soft);margin-top:7px}
+  @media(max-width:640px){.stats{grid-template-columns:1fr}}
+
+  /* levers */
+  .levers{display:grid;gap:14px;margin-top:8px}
+  .lever{background:var(--card);border:1px solid var(--line-soft);border-radius:12px;padding:22px 24px;display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:start}
+  .lever .ln{font-family:var(--display);font-size:30px;font-weight:600;color:var(--pink);line-height:.9}
+  .lever h3{margin-bottom:4px}
+  .lever p{font-size:14.5px;margin:0;color:var(--ink-soft);max-width:74ch}
+  .lever .bridge{display:inline-block;margin-top:9px;font-size:12.5px;color:var(--indigo);font-weight:600}
+  .lever .bridge::before{content:"\2197  ";}
+
+  /* model flow */
+  .flow{display:flex;align-items:stretch;gap:0;margin:18px 0 8px;flex-wrap:nowrap}
+  .node{flex:1 1 0;background:var(--card);border:1px solid var(--line-soft);border-radius:12px;padding:22px 20px;position:relative;overflow:hidden}
+  .node::before{content:"";position:absolute;top:0;left:0;right:0;height:4px}
+  .node.n1::before{background:var(--pink)}
+  .node.n2::before{background:var(--indigo)}
+  .node.n3::before{background:var(--yellow)}
+  .node .role{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;margin-bottom:9px}
+  .node h3{font-size:20px;margin-bottom:7px}
+  .node .mech{font-size:12px;font-weight:600;color:var(--indigo);margin-bottom:9px}
+  .node p{font-size:13px;margin:0;color:var(--ink-soft)}
+  .conn{flex:0 0 64px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 6px}
+  .conn .glyph{font-size:22px;color:var(--indigo);line-height:1}
+  .conn .lbl{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin-top:6px;line-height:1.25}
+  @media(max-width:760px){.flow{flex-direction:column}.conn{flex-basis:auto;padding:10px 0}.conn .glyph{transform:rotate(90deg)}}
+
+  /* tables */
+  .tbl-wrap{margin:18px 0;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  caption{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo);font-weight:700;padding-bottom:11px}
+  th{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;text-align:right;padding:10px 12px;border-bottom:1.5px solid var(--indigo)}
+  th:first-child{text-align:left}
+  td{padding:11px 12px;border-bottom:1px solid var(--line-soft);text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+  td:first-child{text-align:left;font-weight:500;font-size:13px;line-height:1.35;max-width:340px}
+  tbody tr:hover{background:rgba(67,71,128,.04)}
+  .grp td{background:rgba(67,71,128,.07);font-weight:700;color:var(--indigo);text-align:left;letter-spacing:.03em;font-size:11px;text-transform:uppercase}
+  .grp.pink td{background:rgba(255,128,143,.13);color:#C0445A}
+  .roas{color:var(--indigo);font-weight:700}
+  .pill{display:inline-block;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:#9a7d00;background:rgba(242,206,18,.25);border-radius:4px;padding:2px 7px;margin-left:4px;vertical-align:middle;font-weight:700}
+
+  .callout{background:var(--cream-dark);border-left:4px solid var(--indigo);padding:20px 24px;margin:22px 0;border-radius:0 10px 10px 0}
+  .callout.pink{border-left-color:var(--pink)}
+  .callout .c-lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--indigo);font-weight:700;margin-bottom:8px}
+  .callout.pink .c-lbl{color:#C0445A}
+  .callout p{margin:0}
+
+  footer{padding:38px 0 64px}
+  .foot-note{font-size:12.5px;color:var(--ink-soft);max-width:76ch;font-style:italic;margin-bottom:10px}
+  .sign{font-family:var(--display);font-size:18px;margin-top:14px}
+  .sign span{color:var(--indigo);font-style:italic}
+  ::selection{background:var(--indigo);color:var(--cream)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="cover">
+    <span class="badge"><span class="dot"></span> FluffCo &times; Skyvane &nbsp;&middot;&nbsp; Paid Social Reference</span>
+    <h1>What's working, and <em>where to put it</em></h1>
+    <p class="sub">A best-practice reference you can follow or adapt. It pulls the ads and angles that already converted in the source account, the reasons they worked, and a simple structure for keeping the wins scaling while new ideas keep getting tested.</p>
+    <div class="cover-meta">
+      <div class="item"><span class="lbl">Prepared by</span><span class="val">Skyvane</span></div>
+      <div class="item"><span class="lbl">Window</span><span class="val">Last 30 days</span></div>
+      <div class="item"><span class="lbl">Source</span><span class="val">FluffCo3 account results</span></div>
+      <div class="item"><span class="lbl">Nature</span><span class="val">Reference, follow or not</span></div>
+    </div>
+  </header>
+
+  <!-- SECTION 1 -->
+  <section id="intro">
+    <div class="eyebrow"><span class="n">01</span><span class="k">Intro</span></div>
+    <h2>The opportunity, in one number</h2>
+    <p class="lead">The source account has already shown what good looks like for FluffCo on Meta: a <span class="ind">$79.77 cost per purchase at a 1.90 return on ad spend</span> across the last 30 days. The job now is to repeat that efficiency, deliberately, with the right ads in the right places.</p>
+    <div class="stats">
+      <div class="stat"><div class="s-lbl">Proven cost per purchase</div><div class="s-val num">$79.77</div><div class="s-sub">source account, 30 days</div></div>
+      <div class="stat"><div class="s-lbl">Proven ROAS</div><div class="s-val num">1.90</div><div class="s-sub">revenue / spend</div></div>
+      <div class="stat"><div class="s-lbl">Winner CPM band</div><div class="s-val num">$26&ndash;50</div><div class="s-sub">on the statics that won</div></div>
+    </div>
+    <p>This reference is built in three connected steps. First, <strong>what actually moves the numbers</strong>, the few levers behind that efficiency. Then <strong>the model</strong>, a simple three-campaign structure that puts those levers to work. Then <strong>the winners</strong>, the exact ads and landing-page angles to load into each part of that structure. Each section feeds the next.</p>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section id="levers">
+    <div class="eyebrow"><span class="n">02</span><span class="k">What Moves CPA and ROAS</span></div>
+    <h2>Three levers do the work</h2>
+    <p>Cost per purchase is really impression cost divided by how well those impressions convert. The source account did not win by paying more for attention. It won by buying cheap impressions and being disciplined about what it scaled. Three levers, each of which the model in the next section is designed to pull.</p>
+    <div class="levers">
+      <div class="lever">
+        <div class="ln num">01</div>
+        <div>
+          <h3>Cheap impressions through statics, held down by a cost cap</h3>
+          <p>The winning ads are static images running at $26 to $50 CPM, not high-cost video. The cost cap is what keeps that CPM low as spend grows, instead of letting delivery costs drift up. Cheap impressions that still convert are the whole game.</p>
+          <span class="bridge">In the model, this is why the Scale campaign runs on Cost Cap</span>
+        </div>
+      </div>
+      <div class="lever">
+        <div class="ln num">02</div>
+        <div>
+          <h3>Concentrate budget on ads that already proved they convert</h3>
+          <p>Money sits behind a short list of winners rather than being spread thin across untested ideas. New creative still gets its shot, but in a separate lane, so concentration never means standing still.</p>
+          <span class="bridge">In the model, this is the split between Scale and Testing</span>
+        </div>
+      </div>
+      <div class="lever">
+        <div class="ln num">03</div>
+        <div>
+          <h3>Judge on link clicks and return, not headline click rate</h3>
+          <p>All-clicks click rate flatters the wrong ads. One static showed a 25.95% all-clicks rate but only a 2.43% link click rate and a 1.18 return. The winners here have modest click rates and strong returns, which is what holds up when you spend behind them.</p>
+          <span class="bridge">In the winners list, every ad is ranked on return and real purchase volume</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section id="model">
+    <div class="eyebrow"><span class="n">03</span><span class="k">The Model</span></div>
+    <h2>Three campaigns, one job each</h2>
+    <p>The structure exists to pull all three levers at once. Every new creative enters Testing. Anything that shows a clear winner sign graduates into Scale, which runs on the cost cap and holds proven ads only. Landing pages are tested in parallel, with a steady control creative so the page is the only thing changing.</p>
+    <div class="flow">
+      <div class="node n1">
+        <div class="role">Role 1</div>
+        <h3>Testing Assets</h3>
+        <div class="mech">CBO &middot; get.fluff.co</div>
+        <p>All new creative and new batches enter here first.</p>
+      </div>
+      <div class="conn"><div class="glyph">&rarr;</div><div class="lbl">Promote on<br>winner signs</div></div>
+      <div class="node n2">
+        <div class="role">Role 2</div>
+        <h3>Scale</h3>
+        <div class="mech">CBO &middot; Cost Cap</div>
+        <p>Proven winners only. Where the budget concentrates.</p>
+      </div>
+      <div class="conn"><div class="glyph">+</div><div class="lbl">Runs in<br>parallel</div></div>
+      <div class="node n3">
+        <div class="role">Role 3</div>
+        <h3>LP Testing</h3>
+        <div class="mech">ABO &middot; one page per set</div>
+        <p>Vary the page, hold one control creative steady.</p>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="c-lbl">The promote trigger that makes this work</div>
+      <p>An asset graduates from Testing to Scale once it clears roughly 15 or more purchases at a return at or above the scaler target. That is why ads with real volume move up while a high return on three purchases waits. Having a number is what keeps Scale full of genuine winners and stops it from quietly turning into a third test campaign. Set the exact threshold to taste.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section id="winners">
+    <div class="eyebrow"><span class="n">04</span><span class="k">The Winners</span></div>
+    <h2>The ads, and where each one goes</h2>
+    <p>Full ad names and exact metrics from the source account, last 30 days, sorted into the model above. Returns shown as ROAS, with cost per purchase, purchases, and CPM alongside so the volume behind each is visible.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <caption>Scale &middot; proven winners for the cost-capped scaler</caption>
+        <thead>
+          <tr><th>Ad name</th><th>ROAS</th><th>CPA</th><th>Purch.</th><th>CPM</th></tr>
+        </thead>
+        <tbody>
+          <tr class="grp"><td colspan="5">Proven and already scaling &middot; 100+ purchases</td></tr>
+          <tr><td>Blitzads - FLU_DECW1_51A_var_001_2_English_Deyalla JANW2_Jan_29_get.fluff.co</td><td class="roas">2.24</td><td>$68.23</td><td>309</td><td>$34.71</td></tr>
+          <tr><td>FLU_MARW2_20A_Mar_13_get.fluff.co</td><td class="roas">1.84</td><td>$81.53</td><td>256</td><td>$41.47</td></tr>
+          <tr><td>NER_FLU_APRW3_18C_Apr_16_get.fluff.co</td><td class="roas">2.06</td><td>$72.04</td><td>149</td><td>$35.92</td></tr>
+          <tr><td>Blitzads - Fluff FW4 - 106_Mar-16_get.fluff.co</td><td class="roas">1.66</td><td>$87.42</td><td>135</td><td>$38.66</td></tr>
+          <tr><td>NER_FLU_APRW5_35A_Apr_28_get.fluff.co</td><td class="roas">2.03</td><td>$82.90</td><td>128</td><td>$49.90</td></tr>
+          <tr class="grp"><td colspan="5">Proven on solid volume &middot; 16 to 33 purchases</td></tr>
+          <tr><td>Blitzads - Fluff FW4 - 105_Mar-16_get.fluff.co</td><td class="roas">1.82</td><td>$80.36</td><td>33</td><td>$42.77</td></tr>
+          <tr><td>Blitzads - Fluff FW4 - 500_Mar-16_get.fluff.co</td><td class="roas">3.97</td><td>$57.81</td><td>18</td><td>$26.15</td></tr>
+          <tr><td>Blitzads - Fluff FW4 - 360_Mar-18_get.fluff.co</td><td class="roas">1.66</td><td>$87.54</td><td>18</td><td>$36.47</td></tr>
+          <tr><td>Blitzads - Fluff FW4 - 7_Mar-18_get.fluff.co</td><td class="roas">2.91</td><td>$45.04</td><td>16</td><td>$26.21</td></tr>
+          <tr class="grp pink"><td colspan="5">Ready to promote &middot; strong return, still building volume</td></tr>
+          <tr><td>Blitzads - Fluff FW4 - 217_Mar-18_get.fluff.co</td><td class="roas">2.67</td><td>$56.06</td><td>11</td><td>$26.82</td></tr>
+          <tr><td>NER_FLU_APRW5_22A_Apr_28_get.fluff.co</td><td class="roas">2.09</td><td>$83.31</td><td>8</td><td>$32.88</td></tr>
+          <tr><td>NER_FLU_MAYW1_22A_May_6_get.fluff.co</td><td class="roas">2.16</td><td>$68.00</td><td>7</td><td>$34.93</td></tr>
+          <tr><td>NER_FLU_APRW4_31B_Apr_23_get.fluff.co</td><td class="roas">3.27</td><td>$46.27</td><td>6</td><td>$40.67</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <caption>Testing &middot; still building, plus the next batch to launch</caption>
+        <thead>
+          <tr><th>Ad name</th><th>ROAS</th><th>CPA</th><th>Purch.</th><th>CPM</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Blitzads - Fluff FW4 - 287_Mar-18_get.fluff.co</td><td class="roas">3.78</td><td>$37.89</td><td>3</td><td>$21.46</td></tr>
+          <tr><td>NER_FLU_APRW5_19A_Apr_28_get.fluff.co</td><td class="roas">2.78</td><td>$59.78</td><td>3</td><td>$27.25</td></tr>
+          <tr><td>MAYW4 batch <span class="pill">new, to launch</span></td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <caption>LP Testing &middot; landing-page angles by conversion (control creative held constant)</caption>
+        <thead>
+          <tr><th>Landing page ad set</th><th>ROAS</th><th>CPA</th><th>Purch.</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Lander 9: Energy/Fatigue_TopCreatives_29May26</td><td class="roas">2.09</td><td>$62.65</td><td>21</td></tr>
+          <tr><td>Lander 4: Durability_TopCreatives_29May26</td><td class="roas">1.98</td><td>$82.07</td><td>26</td></tr>
+          <tr><td>Lander 7: PartnerSnoring_TopCreatives_29May26</td><td class="roas">1.85</td><td>$75.51</td><td>9</td></tr>
+          <tr><td>Lander 2: NeckPain_TopCreatives_29May26</td><td class="roas">1.56</td><td>$85.41</td><td>8</td></tr>
+          <tr><td>Lander 6: LowerBackPain_TopCreatives_29May26</td><td class="roas">1.51</td><td>$108.26</td><td>6</td></tr>
+          <tr><td>Lander 5: HotelMarkup_TopCreatives_29May26</td><td>1.36</td><td>$92.58</td><td>17</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout pink">
+      <div class="c-lbl">Launch suggestion: MAYW4 tailored to each page</div>
+      <p>The MAYW4 batch has assets written to match specific landing-page angles. Launch them onto the matching landers as additional ads, layered on top of the constant control creative. The creative speaks directly to the page while the control keeps the page comparison readable. Keep iterating across the angles rather than cutting any.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section id="read">
+    <div class="eyebrow"><span class="n">05</span><span class="k">How to Read These Numbers</span></div>
+    <h2>So the reference is used safely</h2>
+    <p>This ties back to lever three. A few source ads show very high returns, 10x and up, on a single purchase and a handful of dollars. That is noise, not a winner sign, and it does not trigger promotion. Every ad in the lists above either has real purchase volume or is clearly marked as still building. When an asset graduates to the cost cap, watch its first few days, since testing usually runs without a cap and performance can shift once one applies. And give any newly consolidated campaign time to finish learning before judging it.</p>
+  </section>
+
+  <footer>
+    <p class="foot-note">All returns reflect platform-attributed performance and are best validated against backend sales before any large budget shift. Source figures cover the last 30 days.</p>
+    <p class="sign">Prepared by <span>Skyvane</span> for FluffCo &middot; June 2026</p>
+  </footer>
+
+</div>
+</body>
+</html>
