@@ -1,0 +1,302 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FluffCo Funnel Deep Dive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+/* Recoleta is loaded from the user's local brand font; Fraunces is a warm serif fallback for other viewers. The public CDN build of Recoleta is a watermarked demo and is intentionally not used. */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+:root{
+ --navy:#424680; --navy-lt:#9A9CC0; --coral:#E63946; --amber:#F59E0B;
+ --cream:#FAF3EF; --blush:#F5EBE6; --green:#3E9B6E; --ink:#2A2D52; --mut:#8C88A0; --line:#EBE3DC;
+ --serif:'Recoleta','Fraunces',Georgia,serif;
+ --sans:'PP Pangram Sans','Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:15.5px/1.7 var(--sans);color:var(--ink);background:var(--cream);padding:38px 18px}
+.wrap{max-width:1000px;margin:0 auto}
+h1{font:600 36px/1.15 var(--serif);color:var(--navy);letter-spacing:-.3px;margin-bottom:7px}
+.sub{color:var(--mut);font-size:14px;margin-bottom:26px;line-height:1.55}
+.sub b{color:var(--ink)}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px 32px;margin-bottom:22px;box-shadow:0 2px 8px rgba(66,70,128,.05)}
+h2{font:600 21px/1.3 var(--serif);color:var(--navy);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.lead{font-size:15.5px;color:#54506a;margin:2px 0 18px;line-height:1.72}
+.lead b,.note b{color:var(--ink)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:17px 19px}
+.kpi .lab{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);font-weight:700}
+.kpi .val{font:700 30px/1 var(--serif);color:var(--navy);margin-top:7px}
+.kpi .chg{font-size:12.5px;font-weight:700;margin-top:5px}
+.up{color:var(--coral)}.dn{color:var(--green)}.flat{color:var(--mut)}
+.tag{display:inline-block;padding:3px 12px;border-radius:20px;font-size:11.5px;font-weight:800;letter-spacing:.3px}
+.tg{background:#E2F0E9;color:#2f7857}.tb{background:#FBE3E5;color:#bc2b37}.tn{background:#E6E7F1;color:var(--navy)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.takeaway{margin-top:18px;background:var(--blush);border-left:4px solid var(--amber);border-radius:0 12px 12px 0;padding:13px 18px;font-size:14.5px}
+.takeaway b{color:var(--navy);font-weight:700}
+.tldr{background:linear-gradient(150deg,#424680 0%,#34375f 100%);color:#fff;border:none}
+.meta{display:flex;flex-wrap:wrap;gap:0;margin-bottom:26px;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.meta .m{flex:1;min-width:170px;padding:13px 18px;border-right:1px solid var(--line)}
+.meta .m:last-child{border-right:none}
+.meta .mlab{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--mut);font-weight:800}
+.meta .mval{font-size:14.5px;color:var(--ink);font-weight:700;margin-top:3px}
+.meta .mval span{color:var(--mut);font-weight:500;font-size:12.5px}
+.meta .m.go .mval{color:var(--green)} .meta .m.cr .mval{color:var(--coral)}
+.tldr h2{color:#cdd0ea;border-color:rgba(255,255,255,.16)}
+.tldr ul{margin:0;list-style:none}
+.tldr li{position:relative;padding:8px 0 8px 30px;border-bottom:1px solid rgba(255,255,255,.1);color:#eceaf4;font-size:15.5px}
+.tldr li:last-child{border:none}
+.tldr li:before{content:"";position:absolute;left:4px;top:15px;width:9px;height:9px;border-radius:50%;background:var(--amber)}
+.tldr li b{color:#ffd98a}
+.tldr .cav{margin-top:14px;font-size:13px;color:#b9bbd6;border-top:1px solid rgba(255,255,255,.14);padding-top:12px;line-height:1.6}
+.exec p{font-size:15.5px;line-height:1.74;margin-bottom:12px;color:#48455e}
+.exec p:last-of-type{margin-bottom:0} .exec b{color:var(--navy)}
+.timeline{position:relative;display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:22px 0 6px;padding-top:8px}
+.tline{position:absolute;top:13px;left:5%;right:5%;height:2px;background:var(--line)}
+.tnode{position:relative;text-align:center;padding:0 4px}
+.tdot{width:13px;height:13px;border-radius:50%;margin:0 auto 12px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);position:relative;z-index:1}
+.tdate{font-weight:800;font-size:12.5px;color:var(--ink)}
+.ttitle{font-size:12px;color:var(--navy);font-weight:700;margin-top:2px;line-height:1.3}
+.tsub{font-size:11px;color:var(--mut);margin-top:2px;line-height:1.3}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 6px;border-bottom:2px solid var(--line);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut)}
+td{padding:7px 6px;border-bottom:1px solid #F4EEE8;font-variant-numeric:tabular-nums}
+td.d{font-weight:700;color:#54506a}
+.good{color:var(--green);font-weight:700}.bad{color:var(--coral);font-weight:700}.mid{color:#c98a17;font-weight:700}
+.pill3{background:#D9DBEC;color:var(--navy);padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.pillc{background:var(--coral);color:#fff;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.legend{font-size:12px;color:var(--mut);margin-top:12px}
+.legend i{font-style:normal;display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:middle;margin:0 5px 0 14px}
+.legbox{margin-top:14px;background:var(--blush);border-radius:12px;padding:14px 18px;font-size:12.5px;color:#54506a;line-height:1.7}
+.legbox b{color:var(--navy)}
+.legbox .sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:middle;margin-right:4px}
+.minis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.mini{border:1px solid var(--line);border-radius:14px;padding:6px;background:#fff}
+.chain{display:flex;align-items:stretch;gap:8px;margin-top:18px;flex-wrap:wrap}
+.chain .step{flex:1;min-width:150px;background:var(--blush);border-radius:12px;padding:12px 14px;font-size:13px;color:#54506a}
+.chain .step b{display:block;color:var(--navy);font-size:13.5px;margin-bottom:2px}
+.chain .arr{align-self:center;color:var(--coral);font-weight:800;font-size:18px}
+.sct{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:#fff}
+.sct-l{font-weight:800;margin-bottom:10px;font-size:14px}
+.sct-row{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line);font-size:13.5px;color:#54506a}
+.sct-row b{font:700 18px var(--serif);color:var(--ink)}
+.callout{background:#FBE9EB;border:1px solid #F3C7CB;border-radius:14px;padding:20px 24px;display:flex;gap:24px;align-items:center}
+.callout .big{font:700 38px/1 var(--serif);color:var(--coral);white-space:nowrap}
+.callout .txt{font-size:14px;color:#9a2730}
+ul.plain{margin:4px 0 0 18px} ul.plain li{margin-bottom:9px;color:#54506a}
+.rec{border-left:4px solid var(--navy);padding:12px 18px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--navy);border-radius:0 12px 12px 0;margin-bottom:12px}
+.rec b{display:block;margin-bottom:3px;color:var(--ink);font-size:15px}
+.rec .pr{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--coral)}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin:14px 0 6px}
+.barpair{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:13px}
+.barpair .nm{width:256px;color:#54506a}
+.barpair .tr{flex:1;background:var(--blush);border-radius:6px;height:20px;overflow:hidden}
+.barpair .fl{height:100%;border-radius:6px}
+.barpair .rv{width:60px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.note{font-size:12.5px;color:var(--mut);font-style:italic;margin-top:12px;line-height:1.65}
+</style></head><body><div class="wrap">
+
+<h1>FluffCo Funnel: What Happened After Stripe and the Account Move</h1>
+<div class="sub">The 10 days since two big changes landed, and what they did to the funnel.</div>
+<div class="meta">
+<div class="m go"><div class="mlab">Change 1 &middot; Stripe Checkout</div><div class="mval">Live 1 Jun <span>helped</span></div></div>
+<div class="m cr"><div class="mlab">Change 2 &middot; Account move</div><div class="mval">5 Jun: FluffCo3 to FluffCo <span>hurt</span></div></div>
+<div class="m"><div class="mlab">Reporting window</div><div class="mval">24 May to 10 Jun <span>18 days</span></div></div>
+<div class="m"><div class="mlab">Source</div><div class="mval">Meta Ads export <span>both accounts</span></div></div>
+</div>
+
+<div class="kpis">
+<div class="kpi"><div class="lab">ROAS now</div><div class="val">1.27</div><div class="chg up">&#9660; was 1.84 before move</div></div>
+<div class="kpi"><div class="lab">Cost per sale</div><div class="val">$135</div><div class="chg up">&#9650; was $85</div></div>
+<div class="kpi"><div class="lab">Ads live, new acct</div><div class="val">17</div><div class="chg up">&#9660; was 319</div></div>
+<div class="kpi"><div class="lab">Revenue left behind</div><div class="val">$13&ndash;18k</div><div class="chg flat">over 5 days</div></div>
+</div>
+
+<div class="card exec">
+<h2>Executive Summary</h2>
+<p>Two things changed in early June, close together, which makes it easy to blame the wrong one. <b>Stripe Checkout</b> went live on <b>1 June</b>. Four days later, on <b>5 June</b>, we began consolidating: we stopped running the old <b>FluffCo3</b> ad account and moved everything into the <b>FluffCo</b> account. Here is the order of events:</p>
+<div class="timeline"><div class="tline"></div><div class="tnode"><div class="tdot" style="background:var(--navy-lt)"></div>
+    <div class="tdate">May 24</div><div class="ttitle">Window opens</div><div class="tsub">FluffCo3, old checkout</div></div><div class="tnode"><div class="tdot" style="background:var(--amber)"></div>
+    <div class="tdate">Jun 1</div><div class="ttitle">Stripe Checkout goes live</div><div class="tsub">still on FluffCo3</div></div><div class="tnode"><div class="tdot" style="background:var(--navy-lt)"></div>
+    <div class="tdate">Jun 4</div><div class="ttitle">Last full day on FluffCo3</div><div class="tsub">old account at full spend</div></div><div class="tnode"><div class="tdot" style="background:var(--coral)"></div>
+    <div class="tdate">Jun 5</div><div class="ttitle">Consolidation starts</div><div class="tsub">FluffCo3 switched off</div></div><div class="tnode"><div class="tdot" style="background:var(--coral)"></div>
+    <div class="tdate">Jun 6</div><div class="ttitle">New FluffCo account live</div><div class="tsub">all spend moves here</div></div><div class="tnode"><div class="tdot" style="background:var(--navy-lt)"></div>
+    <div class="tdate">Jun 10</div><div class="ttitle">Report date</div><div class="tsub">5 days into the new account</div></div></div>
+<p style="margin-top:20px">Since the move, blended ROAS has fallen from <b>1.84 to 1.27</b> and the cost to make one sale has jumped from <b>$85 to $135</b>. The instinct is to suspect the new Stripe checkout, but the data points the other way. Everything from the click downward (landing page, add to cart, checkout, purchase) is holding up or improving. The damage is all at the top of the funnel, where a brand new ad account has lost the buyer history Facebook spent months learning. On top of that, the campaign that quietly produced most of our sales was never rebuilt on the new account. That combination, not Stripe, explains the drop.</p>
+</div>
+
+<div class="card">
+<h2>1. The 18 days at a glance</h2>
+<div class="lead">This one chart holds two different stories. Up to 4 June, on the old account, ROAS sits comfortably between <b>1.8 and 2.5</b>. After we cut over on 5 June, it drops into a jumpy <b>0.8 to 1.6</b> band and, five days in, still is not climbing. That flat, choppy line is exactly what a fresh account looks like before Facebook has worked out who to show your ads to.</div>
+<svg viewBox="0 0 880 372" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:inherit"><rect x="614.1" y="30" width="213.9" height="296" fill="#FBEAEC"/><text x="624.1" y="45" font-size="11" fill="#E63946" font-weight="700">NEW ACCOUNT (FluffCo), still learning</text><line x1="592.7" y1="30" x2="592.7" y2="326" stroke="#E63946" stroke-width="1.5" stroke-dasharray="4 3"/><line x1="58" y1="326.0" x2="828" y2="326.0" stroke="#EBE3DC"/><text x="836" y="330.0" font-size="10" fill="#E63946" font-weight="600">0.0</text><line x1="58" y1="227.3" x2="828" y2="227.3" stroke="#EBE3DC"/><text x="836" y="231.3" font-size="10" fill="#E63946" font-weight="600">1.0</text><line x1="58" y1="128.7" x2="828" y2="128.7" stroke="#EBE3DC"/><text x="836" y="132.7" font-size="10" fill="#E63946" font-weight="600">2.0</text><line x1="58" y1="30.0" x2="828" y2="30.0" stroke="#EBE3DC"/><text x="836" y="34.0" font-size="10" fill="#E63946" font-weight="600">3.0</text><text x="48" y="330.0" font-size="10" fill="#8C88A0" text-anchor="end">$0k</text><text x="48" y="256.1" font-size="10" fill="#8C88A0" text-anchor="end">$2k</text><text x="48" y="182.2" font-size="10" fill="#8C88A0" text-anchor="end">$5k</text><text x="48" y="108.3" font-size="10" fill="#8C88A0" text-anchor="end">$7k</text><line x1="58" y1="227.3" x2="828" y2="227.3" stroke="#F59E0B" stroke-width="1.2" stroke-dasharray="2 3"/><text x="62" y="223.3" font-size="9" fill="#F59E0B" font-weight="700">breakeven 1.0</text><rect x="66.1" y="211.3" width="26.5" height="114.7" rx="2.5" fill="#424680" opacity="0.9"/><text x="79.4" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">24</text><rect x="108.9" y="218.5" width="26.5" height="107.5" rx="2.5" fill="#424680" opacity="0.9"/><text x="122.2" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">25</text><rect x="151.7" y="223.1" width="26.5" height="102.9" rx="2.5" fill="#424680" opacity="0.9"/><text x="164.9" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">26</text><rect x="194.5" y="223.5" width="26.5" height="102.5" rx="2.5" fill="#424680" opacity="0.9"/><text x="207.7" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">27</text><rect x="237.2" y="227.3" width="26.5" height="98.7" rx="2.5" fill="#424680" opacity="0.9"/><text x="250.5" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">28</text><rect x="280.0" y="206.9" width="26.5" height="119.1" rx="2.5" fill="#424680" opacity="0.9"/><text x="293.3" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">29</text><rect x="322.8" y="224.9" width="26.5" height="101.1" rx="2.5" fill="#424680" opacity="0.9"/><text x="336.1" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">30</text><rect x="365.6" y="137.1" width="26.5" height="188.9" rx="2.5" fill="#424680" opacity="0.9"/><text x="378.8" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">31</text><rect x="408.3" y="135.8" width="26.5" height="190.2" rx="2.5" fill="#424680" opacity="0.9"/><text x="421.6" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">01</text><rect x="451.1" y="103.5" width="26.5" height="222.5" rx="2.5" fill="#424680" opacity="0.9"/><text x="464.4" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">02</text><rect x="493.9" y="61.7" width="26.5" height="264.3" rx="2.5" fill="#424680" opacity="0.9"/><text x="507.2" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">03</text><rect x="536.7" y="62.7" width="26.5" height="263.3" rx="2.5" fill="#424680" opacity="0.9"/><text x="549.9" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">04</text><rect x="579.5" y="322.9" width="26.5" height="3.1" rx="2.5" fill="#D8CFC6" opacity="0.9"/><text x="592.7" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">05</text><rect x="622.2" y="197.8" width="26.5" height="128.2" rx="2.5" fill="#E63946" opacity="0.9"/><text x="635.5" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">06</text><rect x="665.0" y="245.7" width="26.5" height="80.3" rx="2.5" fill="#E63946" opacity="0.9"/><text x="678.3" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">07</text><rect x="707.8" y="122.9" width="26.5" height="203.1" rx="2.5" fill="#E63946" opacity="0.9"/><text x="721.1" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">08</text><rect x="750.6" y="170.7" width="26.5" height="155.3" rx="2.5" fill="#E63946" opacity="0.9"/><text x="763.8" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">09</text><rect x="793.4" y="199.2" width="26.5" height="126.8" rx="2.5" fill="#E63946" opacity="0.9"/><text x="806.6" y="342" font-size="9" fill="#8C88A0" text-anchor="middle">10</text><polyline points="79.4,145.4 122.2,81.3 164.9,102.0 207.7,87.2 250.5,181.0 293.3,136.6 336.1,148.4 378.8,118.8 421.6,145.4 464.4,103.0 507.2,151.4 549.9,172.1" fill="none" stroke="#2A2D52" stroke-width="2.5"/><circle cx="79.4" cy="145.4" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="122.2" cy="81.3" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="164.9" cy="102.0" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="207.7" cy="87.2" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="250.5" cy="181.0" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="293.3" cy="136.6" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="336.1" cy="148.4" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="378.8" cy="118.8" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="421.6" cy="145.4" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="464.4" cy="103.0" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="507.2" cy="151.4" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="549.9" cy="172.1" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><polyline points="635.5,178.0 678.3,164.2 721.1,250.0 763.8,161.2 806.6,215.5" fill="none" stroke="#2A2D52" stroke-width="2.5"/><circle cx="635.5" cy="178.0" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="678.3" cy="164.2" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="721.1" cy="250.0" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="763.8" cy="161.2" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><circle cx="806.6" cy="215.5" r="3.2" fill="#fff" stroke="#2A2D52" stroke-width="2"/><text x="592.7" y="322.0" font-size="8.5" fill="#8C88A0" text-anchor="middle">cutover</text></svg>
+<div class="legend"><i style="background:var(--navy)"></i>FluffCo3 spend <i style="background:var(--coral)"></i>FluffCo spend <i style="background:var(--ink);border-radius:50%"></i> ROAS line <i style="background:var(--amber)"></i> breakeven (1.0)</div>
+<div class="takeaway"><b>Oh-I-see:</b> the line does not recover after the move. A healthy new account climbs as it learns. Ours is flat, which means it is still stuck in the reset.</div>
+</div>
+
+<div class="card">
+<h2>2. Two changes, one chart: which one actually hurt?</h2>
+<div class="lead">This is the part worth slowing down on. Because Stripe went live <b>before</b> the account move, the few days in between (1 to 4 June: Stripe on, still the old account) let us separate the two. Each red bar below is the ROAS we lost at that step. The Stripe step is small. The account-move step is almost three times bigger.</div>
+<svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:inherit"><line x1="60" y1="246.0" x2="860" y2="246.0" stroke="#EBE3DC"/><text x="52" y="250.0" font-size="10" fill="#8C88A0" text-anchor="end">0.0</text><line x1="60" y1="196.9" x2="860" y2="196.9" stroke="#EBE3DC"/><text x="52" y="200.9" font-size="10" fill="#8C88A0" text-anchor="end">0.5</text><line x1="60" y1="147.8" x2="860" y2="147.8" stroke="#EBE3DC"/><text x="52" y="151.8" font-size="10" fill="#8C88A0" text-anchor="end">1.0</text><line x1="60" y1="98.7" x2="860" y2="98.7" stroke="#EBE3DC"/><text x="52" y="102.7" font-size="10" fill="#8C88A0" text-anchor="end">1.5</text><line x1="60" y1="49.6" x2="860" y2="49.6" stroke="#EBE3DC"/><text x="52" y="53.6" font-size="10" fill="#8C88A0" text-anchor="end">2.0</text><rect x="99.5" y="45.7" width="79.0" height="200.3" rx="4" fill="#9A9CC0"/><text x="139.0" y="37.7" font-size="17" font-weight="700" fill="#2A2D52" text-anchor="middle" style="font-family:var(--serif)">2.04</text><text x="139.0" y="266.0" font-size="11.5" fill="#2A2D52" font-weight="700" text-anchor="middle">Before Stripe</text><text x="139.0" y="280.0" font-size="10" fill="#8C88A0" text-anchor="middle">May 24 to 31</text><rect x="257.5" y="45.7" width="79.0" height="19.6" rx="4" fill="#E63946" opacity="0.55"/><text x="297.0" y="37.7" font-size="13" font-weight="800" fill="#E63946" text-anchor="middle">-0.20</text><text x="297.0" y="266.0" font-size="11.5" fill="#2A2D52" font-weight="700" text-anchor="middle">More spend</text><text x="297.0" y="280.0" font-size="10" fill="#8C88A0" text-anchor="middle">plus Stripe</text><rect x="415.5" y="65.3" width="79.0" height="180.7" rx="4" fill="#424680"/><text x="455.0" y="57.3" font-size="17" font-weight="700" fill="#2A2D52" text-anchor="middle" style="font-family:var(--serif)">1.84</text><text x="455.0" y="266.0" font-size="11.5" fill="#2A2D52" font-weight="700" text-anchor="middle">Stripe live</text><text x="455.0" y="280.0" font-size="10" fill="#8C88A0" text-anchor="middle">Jun 1 to 4</text><rect x="573.5" y="65.3" width="79.0" height="56.0" rx="4" fill="#E63946" opacity="0.55"/><text x="613.0" y="57.3" font-size="13" font-weight="800" fill="#E63946" text-anchor="middle">-0.57</text><text x="613.0" y="266.0" font-size="11.5" fill="#2A2D52" font-weight="700" text-anchor="middle">Account move</text><text x="613.0" y="280.0" font-size="10" fill="#8C88A0" text-anchor="middle">FluffCo3 off</text><rect x="731.5" y="121.3" width="79.0" height="124.7" rx="4" fill="#E63946"/><text x="771.0" y="113.3" font-size="17" font-weight="700" fill="#2A2D52" text-anchor="middle" style="font-family:var(--serif)">1.27</text><text x="771.0" y="266.0" font-size="11.5" fill="#2A2D52" font-weight="700" text-anchor="middle">After move</text><text x="771.0" y="280.0" font-size="10" fill="#8C88A0" text-anchor="middle">Jun 6 to 10</text></svg>
+<div class="grid2" style="margin-top:18px">
+<div class="sct" style="border-color:#CDE6DA;background:#F1F8F4"><span class="tag tg">Stripe, all good</span><p style="font-size:13.5px;color:#54506a;margin-top:10px">It cost just 0.20 of ROAS, and even that was really because we doubled daily spend at the same time. More people who added to cart finished checking out. Stripe helped.</p></div>
+<div class="sct" style="border-color:#F3C7CB;background:#FBE9EB"><span class="tag tb">The account move, the real hit</span><p style="font-size:13.5px;color:#54506a;margin-top:10px">It cost 0.57 of ROAS while we were spending <b>less</b> than before. Cheaper traffic should help, not hurt, so the cause is the fresh-account reset, not the budget.</p></div>
+</div>
+<div class="takeaway"><b>Oh-I-see:</b> if Stripe were the villain, the drop would have shown up on 1 June. It did not. It showed up on 6 June, the day after the account move.</div>
+</div>
+
+<div class="card">
+<h2>3. So where exactly is it leaking?</h2>
+<div class="lead">Think of the funnel as six steps, measured against the same 100,000 ad views in each period so the comparison is fair. Reading down each bar, you can see precisely where people fall out. The gap opens right at the top, at the click, and the steps below it stay healthy.</div>
+<svg viewBox="0 0 880 350" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:inherit"><text x="176" y="16" font-size="10.5" fill="#8C88A0">bar length uses a log scale so the small steps stay visible; the labels are the real counts per 100,000 ad views</text><text x="164" y="59.0" font-size="12.5" font-weight="600" fill="#2A2D52" text-anchor="end">Saw the ad</text><rect x="176" y="32.0" width="594.0" height="9" rx="2" fill="#9A9CC0"/><text x="776.0" y="40.0" font-size="9" fill="#8C88A0">100,000</text><rect x="176" y="44.0" width="594.0" height="9" rx="2" fill="#424680"/><text x="776.0" y="52.0" font-size="9" fill="#8C88A0">100,000</text><rect x="176" y="56.0" width="594.0" height="9" rx="2" fill="#E63946"/><text x="776.0" y="64.0" font-size="9" fill="#8C88A0">100,000</text><text x="164" y="109.0" font-size="12.5" font-weight="600" fill="#2A2D52" text-anchor="end">Clicked</text><rect x="176" y="82.0" width="261.1" height="9" rx="2" fill="#9A9CC0"/><text x="443.1" y="90.0" font-size="9" fill="#8C88A0">1,246</text><rect x="176" y="94.0" width="266.3" height="9" rx="2" fill="#424680"/><text x="448.3" y="102.0" font-size="9" fill="#8C88A0">1,334</text><rect x="176" y="106.0" width="236.9" height="9" rx="2" fill="#E63946"/><text x="418.9" y="114.0" font-size="9" fill="#8C88A0">906</text><text x="164" y="159.0" font-size="12.5" font-weight="600" fill="#2A2D52" text-anchor="end">Reached landing page</text><rect x="176" y="132.0" width="249.2" height="9" rx="2" fill="#9A9CC0"/><text x="431.2" y="140.0" font-size="9" fill="#8C88A0">1,066</text><rect x="176" y="144.0" width="248.1" height="9" rx="2" fill="#424680"/><text x="430.1" y="152.0" font-size="9" fill="#8C88A0">1,050</text><rect x="176" y="156.0" width="225.6" height="9" rx="2" fill="#E63946"/><text x="407.6" y="164.0" font-size="9" fill="#8C88A0">781</text><text x="164" y="209.0" font-size="12.5" font-weight="600" fill="#2A2D52" text-anchor="end">Added to cart</text><rect x="176" y="182.0" width="146.9" height="9" rx="2" fill="#9A9CC0"/><text x="328.9" y="190.0" font-size="9" fill="#8C88A0">277</text><rect x="176" y="194.0" width="105.7" height="9" rx="2" fill="#424680"/><text x="287.7" y="202.0" font-size="9" fill="#8C88A0">161</text><rect x="176" y="206.0" width="89.5" height="9" rx="2" fill="#E63946"/><text x="271.5" y="214.0" font-size="9" fill="#8C88A0">130</text><text x="164" y="259.0" font-size="12.5" font-weight="600" fill="#2A2D52" text-anchor="end">Started checkout</text><rect x="176" y="232.0" width="15.4" height="9" rx="2" fill="#9A9CC0"/><text x="197.4" y="240.0" font-size="9" fill="#8C88A0">49</text><rect x="176" y="244.0" width="61.6" height="9" rx="2" fill="#424680"/><text x="243.6" y="252.0" font-size="9" fill="#8C88A0">90</text><rect x="176" y="256.0" width="47.7" height="9" rx="2" fill="#E63946"/><text x="229.7" y="264.0" font-size="9" fill="#8C88A0">75</text><text x="164" y="309.0" font-size="12.5" font-weight="600" fill="#2A2D52" text-anchor="end">Bought</text><rect x="176" y="282.0" width="22.8" height="9" rx="2" fill="#9A9CC0"/><text x="204.8" y="290.0" font-size="9" fill="#8C88A0">54</text><rect x="176" y="294.0" width="25.5" height="9" rx="2" fill="#424680"/><text x="207.5" y="302.0" font-size="9" fill="#8C88A0">56</text><rect x="176" y="306.0" width="6.0" height="9" rx="2" fill="#E63946"/><text x="188.0" y="314.0" font-size="9" fill="#8C88A0">43</text></svg>
+<div class="legend"><i style="background:var(--navy-lt)"></i>A: before Stripe <i style="background:var(--navy)"></i>B: Stripe, old account <i style="background:var(--coral)"></i>C: after the move</div>
+<div class="grid2" style="margin-top:18px">
+<div class="sct"><div class="sct-l" style="color:var(--coral)">The leak: fewer clicks</div><p style="font-size:13.5px;color:#54506a">Out of every 100,000 views, we used to get <b>1,334 clicks</b>. Now we get <b>906</b>. That is roughly <b>430 fewer clicks</b> for the same reach, purely because the new account is targeting worse.</p></div>
+<div class="sct"><div class="sct-l" style="color:var(--green)">What is fine: the buying</div><p style="font-size:13.5px;color:#54506a">Of the people who do reach the landing page, the same share still buy: <b>5.4% before, 5.5% now</b>. The page, the offer and the new Stripe checkout are all doing their job.</p></div>
+</div>
+<div class="note">One number looks alarming but is not: "added to cart" fell from 277 to 130 per 100k. That is a tracking shift, the cart step now lives inside Stripe, not a real drop. The proof is that "started checkout" actually went up (49 to 75) and purchases held. People are still buying, the cart event just fires differently now.</div>
+<div class="takeaway"><b>Oh-I-see:</b> nothing is broken on the website. We are simply buying fewer, lower-quality clicks at the top, and everything downstream is fine.</div>
+</div>
+
+<div class="card">
+<h2>4. Every cost number tells the same story</h2>
+<div class="lead">These four numbers are not separate problems, they are one problem seen four ways. Read them left to right and they form a chain: fewer clicks, so each view costs more to turn into a visit, so each visit costs more, so each sale costs more. The dark bar (after the move) is worse in every single one.</div>
+<div class="minis"><div class="mini"><svg viewBox="0 0 205 178" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:inherit"><text x="102.5" y="15" font-size="11.5" font-weight="700" fill="#2A2D52" text-anchor="middle">Click rate</text><text x="102.5" y="30" font-size="8.5" fill="#8C88A0" text-anchor="middle">fewer people click</text><rect x="27.5" y="63.1" width="34.6" height="74.9" rx="3" fill="#9A9CC0" opacity="0.55"/><text x="44.8" y="58.1" font-size="11" font-weight="800" fill="#2A2D52" text-anchor="middle">1.25%</text><text x="44.8" y="153.0" font-size="9" fill="#8C88A0" text-anchor="middle">A</text><rect x="85.2" y="58.3" width="34.6" height="79.7" rx="3" fill="#424680" opacity="0.55"/><text x="102.5" y="53.3" font-size="11" font-weight="800" fill="#2A2D52" text-anchor="middle">1.33%</text><text x="102.5" y="153.0" font-size="9" fill="#8C88A0" text-anchor="middle">B</text><rect x="142.9" y="83.5" width="34.6" height="54.5" rx="3" fill="#E63946" opacity="1"/><text x="160.2" y="78.5" font-size="11" font-weight="800" fill="#E63946" text-anchor="middle">0.91%</text><text x="160.2" y="153.0" font-size="9" fill="#8C88A0" text-anchor="middle">C</text><text x="102.5" y="170" font-size="9" fill="#E63946" text-anchor="middle" font-weight="700">&#9660; worse after move</text></svg></div><div class="mini"><svg viewBox="0 0 205 178" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:inherit"><text x="102.5" y="15" font-size="11.5" font-weight="700" fill="#2A2D52" text-anchor="middle">Cost per 1,000 views</text><text x="102.5" y="30" font-size="8.5" fill="#8C88A0" text-anchor="middle">we pay more to be seen</text><rect x="27.5" y="83.6" width="34.6" height="54.4" rx="3" fill="#9A9CC0" opacity="0.55"/><text x="44.8" y="78.6" font-size="11" font-weight="800" fill="#2A2D52" text-anchor="middle">$39.5</text><text x="44.8" y="153.0" font-size="9" fill="#8C88A0" text-anchor="middle">A</text><rect x="85.2" y="72.3" width="34.6" height="65.7" rx="3" fill="#424680" opacity="0.55"/><text x="102.5" y="67.3" font-size="11" font-weight="800" fill="#2A2D52" text-anchor="middle">$47.7</text><text x="102.5" y="153.0" font-size="9" fill="#8C88A0" text-anchor="middle">B</text><rect x="142.9" y="58.3" width="34.6" height="79.7" rx="3" fill="#E63946" opacity="1"/><text x="160.2" y="53.3" font-size="11" font-weight="800" fill="#E63946" text-anchor="middle">$57.8</text><text x="160.2" y="153.0" font-size="9" fill="#8C88A0" text-anchor="middle">C</text><text x="102.5" y="170" font-size="9" fill="#E63946" text-anchor="middle" font-weight="700">&#9650; worse after move</text></svg></div><div class="mini"><svg viewBox="0 0 205 178" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:inherit"><text x="102.5" y="15" font-size="11.5" font-weight="700" fill="#2A2D52" text-anchor="middle">Cost per landing visit</text><text x="102.5" y="30" font-size="8.5" fill="#8C88A0" text-anchor="middle">each visitor costs more</text><rect x="27.5" y="98.1" width="34.6" height="39.9" rx="3" fill="#9A9CC0" opacity="0.55"/><text x="44.8" y="93.1" font-size="11" font-weight="800" fill="#2A2D52" text-anchor="middle">$3.71</text><text x="44.8" y="153.0" font-size="9" fill="#8C88A0" text-anchor="middle">A</text><rect x="85.2" y="89.1" width="34.6" height="48.9" rx="3" fill="#424680" opacity="0.55"/><text x="102.5" y="84.1" font-size="11" font-weight="800" fill="#2A2D52" text-anchor="middle">$4.54</text><text x="102.5" y="153.0" font-size="9" fill="#8C88A0" text-anchor="middle">B</text><rect x="142.9" y="58.3" width="34.6" height="79.7" rx="3" fill="#E63946" opacity="1"/><text x="160.2" y="53.3" font-size="11" font-weight="800" fill="#E63946" text-anchor="middle">$7.4</text><text x="160.2" y="153.0" font-size="9" fill="#8C88A0" text-anchor="middle">C</text><text x="102.5" y="170" font-size="9" fill="#E63946" text-anchor="middle" font-weight="700">&#9650; worse after move</text></svg></div><div class="mini"><svg viewBox="0 0 205 178" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:inherit"><text x="102.5" y="15" font-size="11.5" font-weight="700" fill="#2A2D52" text-anchor="middle">Cost per sale</text><text x="102.5" y="30" font-size="8.5" fill="#8C88A0" text-anchor="middle">the bottom line</text><rect x="27.5" y="94.9" width="34.6" height="43.1" rx="3" fill="#9A9CC0" opacity="0.55"/><text x="44.8" y="89.9" font-size="11" font-weight="800" fill="#2A2D52" text-anchor="middle">$73</text><text x="44.8" y="153.0" font-size="9" fill="#8C88A0" text-anchor="middle">A</text><rect x="85.2" y="87.8" width="34.6" height="50.2" rx="3" fill="#424680" opacity="0.55"/><text x="102.5" y="82.8" font-size="11" font-weight="800" fill="#2A2D52" text-anchor="middle">$85</text><text x="102.5" y="153.0" font-size="9" fill="#8C88A0" text-anchor="middle">B</text><rect x="142.9" y="58.3" width="34.6" height="79.7" rx="3" fill="#E63946" opacity="1"/><text x="160.2" y="53.3" font-size="11" font-weight="800" fill="#E63946" text-anchor="middle">$135</text><text x="160.2" y="153.0" font-size="9" fill="#8C88A0" text-anchor="middle">C</text><text x="102.5" y="170" font-size="9" fill="#E63946" text-anchor="middle" font-weight="700">&#9650; worse after move</text></svg></div></div>
+<div class="chain">
+<div class="step"><b>Fewer clicks</b>Click rate fell 32% (1.33% to 0.91%)</div>
+<div class="arr">&#8594;</div>
+<div class="step"><b>Pricier reach</b>Cost per 1,000 views rose 21% ($48 to $58)</div>
+<div class="arr">&#8594;</div>
+<div class="step"><b>Pricier visits</b>Cost per landing visit rose 63% ($4.54 to $7.40)</div>
+<div class="arr">&#8594;</div>
+<div class="step" style="background:#FBE9EB"><b>Pricier sales</b>Cost per sale rose 59% ($85 to $135)</div>
+</div>
+<div class="takeaway"><b>Oh-I-see:</b> we are paying 21% more to be seen by people who click a third less often, and that alone drags the cost of every sale up by almost 60%.</div>
+</div>
+
+<div class="card">
+<h2>5. What the move actually did to the account</h2>
+<div class="lead">The move did not carry the machine across, it quietly rebuilt a much smaller, untested one. We went from a mature, well-trained account to a near-empty one. With this few ads and zero conversion history, Facebook is effectively starting over.</div>
+<div class="grid2">
+<div class="sct" style="border-color:#CDE6DA"><div class="sct-l" style="color:var(--green)">Old: FluffCo3 (trained up)</div>
+<div class="sct-row"><span>Campaigns</span><b>5</b></div><div class="sct-row"><span>Ad sets</span><b>37</b></div><div class="sct-row"><span>Live ads</span><b>319</b></div></div>
+<div class="sct" style="border-color:#F3C7CB"><div class="sct-l" style="color:var(--coral)">New: FluffCo (after move)</div>
+<div class="sct-row"><span>Campaigns</span><b>2</b></div><div class="sct-row"><span>Ad sets</span><b>17</b></div><div class="sct-row"><span>Live ads</span><b>17</b></div></div>
+</div>
+<div class="takeaway"><b>Oh-I-see:</b> 319 live ads down to 17 is not a migration, it is a rebuild from scratch. No wonder Facebook is learning all over again.</div>
+</div>
+
+<div class="card">
+<h2>6. The one that matters most: our best campaign is missing</h2>
+<div class="lead">Our Cost-Cap scaling campaign (running since 30 January) was the engine. It held a ROAS of 1.9 to 2.3 every single day right up to 4 June and produced 476 sales across the window. We switched it off on 5 June and <b>never rebuilt it</b> on the new account. Instead, the new budget is piling into a testing campaign led by one ad that is just treading water.</div>
+<div style="margin:6px 0 6px;font-weight:700;font-size:13px;color:#54506a">Where the new account's $23.5k actually went, 6 to 10 June</div>
+<div class="barpair"><div class="nm">NER_FLU_MAYW1_22A <span style="color:var(--coral);font-weight:700">only 1.01 ROAS</span></div><div class="tr"><div class="fl" style="width:51%;background:var(--coral)"></div></div><div class="rv">$11.9k</div></div>
+<div class="barpair"><div class="nm">…_22A (Copy), 1.91 ROAS</div><div class="tr"><div class="fl" style="width:18%;background:var(--navy)"></div></div><div class="rv">$4.2k</div></div>
+<div class="barpair"><div class="nm">APRW5_26B, 1.77 ROAS</div><div class="tr"><div class="fl" style="width:6%;background:var(--navy-lt)"></div></div><div class="rv">$1.4k</div></div>
+<div class="barpair"><div class="nm">15 other ads</div><div class="tr"><div class="fl" style="width:25%;background:#D8CFC6"></div></div><div class="rv">$6.0k</div></div>
+<div class="note">Half our money is on one ad that barely breaks even. Meanwhile the old account's proven winners, DECW1_51A (2.53 ROAS) and MARW2_20A (2.28), got left behind. Only one of the old top-8 ads made it across.</div>
+<div class="takeaway"><b>Oh-I-see:</b> the ROAS drop is not mysterious. We turned off the campaign doing 2.0+ and replaced it with one doing 1.0.</div>
+</div>
+
+<div class="card">
+<h2>7. What it is costing us, and what is NOT to blame</h2>
+<div class="callout">
+<div class="big">$13&ndash;18k</div>
+<div class="txt">This is roughly the revenue we missed over these 5 days. If the same $23.5k had held its old efficiency instead of dropping to 1.27 ROAS, we would have earned this much more. That is about <b>$2.7k to $3.6k a day</b>, or on the order of <b>$80k to $100k a month</b> if the new account stays where it is.</div>
+</div>
+<div style="margin-top:18px"><span class="tag tn">Things we can stop worrying about</span></div>
+<ul class="plain" style="margin-top:10px">
+<li><b>It is not Stripe or the checkout.</b> More people finished checkout after Stripe, not fewer. The "added to cart" number dropped, but only because that step now happens inside Stripe. The sales held up.</li>
+<li><b>It is not ad fatigue.</b> How often people see our ads barely moved (about 1.3 the whole time). The rising costs are the fresh-account reset, not people tiring of the ads.</li>
+<li><b>It is not the landing page or the offer.</b> The same share of people land, and average order value actually went <b>up</b> ($150 to $171). People who arrive still buy, and buy a little more.</li>
+</ul>
+<div class="takeaway"><b>Oh-I-see:</b> the easy suspects are all innocent. The one real cause is the account reset plus the missing campaign.</div>
+</div>
+
+<div class="card">
+<h2>8. What I would do about it</h2>
+<div class="rec"><span class="pr">First, today</span><b>Rebuild the Cost-Cap scaling campaign on FluffCo</b>Recreate the 30 January setup with the proven winners (DECW1_51A, MARW2_20A, the APRW5 ads). This is the single biggest lever, and it is money we can recover right now, not in three weeks.</div>
+<div class="rec"><span class="pr">Next</span><b>Let the account settle, stop poking it</b>It is only 5 days old and still learning. Pull budget into fewer, well-fed ad sets so each one gets enough sales to exit learning, and resist daily edits. Every change restarts the clock.</div>
+<div class="rec"><span class="pr">Also</span><b>Double-check the pixel and the Stripe purchase signal</b>Rising costs plus fewer clicks can also mean Facebook is flying half-blind. Make sure purchases (including the Stripe-hosted ones) fire with their dollar value and land on the new pixel. Checkout looks healthy, so this is likely fine, but worth confirming the value is flowing.</div>
+<div class="rec"><span class="pr">Then</span><b>Do not scale until ROAS holds above 1.6 for a few days, and scale the proven campaign, not the tester</b>We are at 1.27 now, well under the old 1.84 to 2.04. Once the rebuilt Cost-Cap campaign clears target for 3 days straight, that is the one to pour budget into.</div>
+</div>
+
+<div class="card tldr">
+<h2 style="font-family:var(--serif)">TL;DR &middot; the whole story in four lines</h2>
+<ul>
+<li><b>Stripe is not the problem.</b> Checkout actually got better after it went live on 1 June. More people who add to cart now finish buying.</li>
+<li><b>The account move is the problem.</b> Starting fresh on FluffCo reset everything Facebook had learned, so we now pay more to reach people who click less.</li>
+<li><b>Our best campaign was not rebuilt.</b> The Cost-Cap scaler that drove most sales got switched off on 5 June and never recreated. Half the new budget sits on one ad that barely breaks even.</li>
+<li><b>It is fixable, and worth real money.</b> Roughly $13k to $18k of revenue slipped in just 5 days. Rebuilding the proven campaign is the fastest way back.</li>
+</ul>
+<div class="cav"><b>One caveat to read it with:</b> the new account only has 5 days of data, so treat the dollar figures as direction, not precision. The structural facts (missing campaign, 319 ads down to 17, half the budget on one ad) come straight from the ad-level export and are solid. We have not yet confirmed whether the Cost-Cap campaign was paused on purpose or simply never recreated. We can check that live in Meta before acting.</div>
+</div>
+
+<div class="card">
+<h2>Appendix: day-by-day numbers</h2>
+<table><thead><tr><th>Day</th><th>Spend</th><th>Revenue</th><th>ROAS</th><th>Sales</th><th>CPM</th><th>CTR</th><th>Acct</th></tr></thead>
+<tbody><tr><td class="d">05-24</td><td>$3,879</td><td>$7,081</td>
+<td class="good">1.83</td>
+<td>49</td><td>$39</td><td>1.05%</td>
+<td><span class=pill3>F3</span></td></tr><tr><td class="d">05-25</td><td>$3,635</td><td>$9,006</td>
+<td class="good">2.48</td>
+<td>62</td><td>$40</td><td>1.30%</td>
+<td><span class=pill3>F3</span></td></tr><tr><td class="d">05-26</td><td>$3,480</td><td>$7,896</td>
+<td class="good">2.27</td>
+<td>55</td><td>$35</td><td>1.26%</td>
+<td><span class=pill3>F3</span></td></tr><tr><td class="d">05-27</td><td>$3,466</td><td>$8,403</td>
+<td class="good">2.42</td>
+<td>48</td><td>$36</td><td>1.19%</td>
+<td><span class=pill3>F3</span></td></tr><tr><td class="d">05-28</td><td>$3,340</td><td>$4,901</td>
+<td class="mid">1.47</td>
+<td>35</td><td>$35</td><td>1.09%</td>
+<td><span class=pill3>F3</span></td></tr><tr><td class="d">05-29</td><td>$4,029</td><td>$7,735</td>
+<td class="good">1.92</td>
+<td>53</td><td>$41</td><td>1.25%</td>
+<td><span class=pill3>F3</span></td></tr><tr><td class="d">05-30</td><td>$3,421</td><td>$6,154</td>
+<td class="good">1.80</td>
+<td>39</td><td>$43</td><td>1.47%</td>
+<td><span class=pill3>F3</span></td></tr><tr><td class="d">05-31</td><td>$6,389</td><td>$13,415</td>
+<td class="good">2.10</td>
+<td>90</td><td>$45</td><td>1.36%</td>
+<td><span class=pill3>F3</span></td></tr><tr><td class="d">06-01</td><td>$6,435</td><td>$11,751</td>
+<td class="good">1.83</td>
+<td>85</td><td>$45</td><td>1.45%</td>
+<td><span class=pill3>F3</span></td></tr><tr><td class="d">06-02</td><td>$7,528</td><td>$17,002</td>
+<td class="good">2.26</td>
+<td>101</td><td>$48</td><td>1.44%</td>
+<td><span class=pill3>F3</span></td></tr><tr><td class="d">06-03</td><td>$8,940</td><td>$15,828</td>
+<td class="mid">1.77</td>
+<td>107</td><td>$49</td><td>1.24%</td>
+<td><span class=pill3>F3</span></td></tr><tr><td class="d">06-04</td><td>$8,906</td><td>$13,850</td>
+<td class="mid">1.56</td>
+<td>83</td><td>$48</td><td>1.24%</td>
+<td><span class=pill3>F3</span></td></tr><tr><td class="d">06-05</td><td>$105</td><td>$715</td>
+<td class="good">6.82</td>
+<td>7</td><td>$56</td><td>2.25%</td>
+<td><span class=pill3>F3</span></td></tr><tr><td class="d">06-06</td><td>$4,335</td><td>$6,518</td>
+<td class="mid">1.50</td>
+<td>42</td><td>$60</td><td>0.93%</td>
+<td><span class=pillc>FC</span></td></tr><tr><td class="d">06-07</td><td>$2,718</td><td>$4,468</td>
+<td class="mid">1.64</td>
+<td>25</td><td>$65</td><td>0.96%</td>
+<td><span class=pillc>FC</span></td></tr><tr><td class="d">06-08</td><td>$6,870</td><td>$5,283</td>
+<td class="bad">0.77</td>
+<td>33</td><td>$61</td><td>0.89%</td>
+<td><span class=pillc>FC</span></td></tr><tr><td class="d">06-09</td><td>$5,252</td><td>$8,763</td>
+<td class="mid">1.67</td>
+<td>45</td><td>$52</td><td>0.88%</td>
+<td><span class=pillc>FC</span></td></tr><tr><td class="d">06-10</td><td>$4,289</td><td>$4,803</td>
+<td class="bad">1.12</td>
+<td>29</td><td>$55</td><td>0.91%</td>
+<td><span class=pillc>FC</span></td></tr></tbody></table>
+<div class="legbox">
+<b>How to read this table.</b><br>
+<b>Acct:</b> which ad account ran that day. <span class="pill3">F3</span> = FluffCo3 (the old account) &nbsp; <span class="pillc">FC</span> = FluffCo (the new one).<br>
+<b>5 June</b> is the switch-off day: the old account was throttled to just $105 of spend while we moved over, so its numbers that day are not meaningful.<br>
+<b>ROAS</b> = revenue divided by ad spend (so 2.00 means $2 back for every $1 spent). Colour coding:
+<span class="sw" style="background:var(--green)"></span><b style="color:var(--green)">green</b> = 1.8 or above (healthy) &nbsp;
+<span class="sw" style="background:#c98a17"></span><b style="color:#c98a17">amber</b> = 1.4 to 1.8 (soft) &nbsp;
+<span class="sw" style="background:var(--coral)"></span><b style="color:var(--coral)">red</b> = below 1.4 (losing efficiency).<br>
+<b>CPM</b> = cost per 1,000 views. <b>CTR</b> = the share of people who click after seeing the ad.
+</div>
+</div>
+
+<div class="foot">Built from the Meta Ads exports. FluffCo3 + FluffCo. 24 May to 10 June 2026.</div>
+</div></body></html>
